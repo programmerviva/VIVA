@@ -1,9 +1,11 @@
+import PropTypes from 'prop-types';
 
-
-function Logo({width = '100px'}) {
-  return (
-    <div>Logo</div>
-  )
+function Logo({ width = "100px" }) {
+  return <div style={{ width }}>Logo</div>;
 }
 
-export default Logo
+Logo.propTypes = {
+  width: PropTypes.string
+};
+
+export default Logo;

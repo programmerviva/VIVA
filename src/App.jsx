@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useEffect, useState } from "react";
 import "./App.css";
 import authService from "./appwrite/auth";
 import { login, logout } from "./store/authSlice";
@@ -31,7 +30,7 @@ function App() {
         <main>
           TODO: <Outlet />
         </main>
-        <Footer /> 
+        <Footer />
       </div>
     </div>
   ) : null;

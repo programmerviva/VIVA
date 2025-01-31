@@ -14,7 +14,6 @@ export class Service {
     this.bucket = new Storage(this.client);
   }
 
-  // Post methods
   async createPost({ title, slug, content, featuredImage, status, userId }) {
     try {
       return await this.databases.createDocument(
@@ -30,7 +29,7 @@ export class Service {
         }
       );
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite service :: createPost :: error", error);
     }
   }
 
@@ -48,7 +47,7 @@ export class Service {
         }
       );
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite service :: updatePost :: error", error);
     }
   }
 
@@ -61,7 +60,7 @@ export class Service {
       );
       return true;
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite service :: deletePost :: error", error);
       return false;
     }
   }
@@ -74,7 +73,7 @@ export class Service {
         slug
       );
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite service :: getPost :: error", error);
       return false;
     }
   }
@@ -87,52 +86,39 @@ export class Service {
         queries
       );
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite service :: getPosts :: error", error);
       return false;
     }
   }
 
-  //file upload method
-  async uploadFile(file){
+  // file upload service
+
+  async uploadFile(file) {
     try {
       return await this.bucket.createFile(
         conf.appwriteBucketId,
-         ID.unique(),
-         file
+        ID.unique(),
+        file
       );
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite service :: uploadFile :: error", error);
       return false;
     }
   }
 
-  async deleteFile(fileId){
+  async deleteFile(fileId) {
     try {
-      await this.bucket.deleteFile(
-        conf.appwriteBucketId,
-        fileId
-      )
-      return true
+      await this.bucket.deleteFile(conf.appwriteBucketId, fileId);
+      return true;
     } catch (error) {
-        console.log("AppWrite Service :: getCurrentUser :: error", error);
-        return false;
+      console.log("Appwrite service :: deleteFile :: error", error);
+      return false;
     }
   }
 
-  getFilePreview(fileId){
+  getFilePreview(fileId) {
     return this.bucket.getFilePreview(conf.appwriteBucketId, fileId);
   }
-
-//  async downloadFile(fileId){
-//    try {
-//      await this.bucket.getFileDownload(conf.appwriteBucketId, fileId);
-//      return true;
-//    } catch (error) {
-//     console.log("AppWrite Service :: getCurrentUser :: error", error);
-//     return false;
-//    }
-//  }
-
 }
 
 const service = new Service();

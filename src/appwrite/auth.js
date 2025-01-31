@@ -1,6 +1,7 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable no-useless-catch */
 import conf from "../conf/conf.js";
-import { Client, Account, ID } from "appwrite";
+import { Account, ID } from 'appwrite'
+import { Client } from "appwrite";
 
 export class AuthService {
   client = new Client();
@@ -13,7 +14,6 @@ export class AuthService {
     this.account = new Account(this.client);
   }
 
-  // Account methods
   async createAccount({ email, password, name }) {
     try {
       const userAccount = await this.account.create(
@@ -23,22 +23,22 @@ export class AuthService {
         name
       );
       if (userAccount) {
-        //call another method
+        // call another method
         return this.login({ email, password });
       } else {
         return userAccount;
       }
     } catch (error) {
-      throw new Error(error.message);
+      throw error;
     }
   }
 
   async login({ email, password }) {
+  
     try {
-      const loggedIn = await this.account.createEmailSession(email, password);
-      return loggedIn;
+      return await this.account.createEmailPasswordSession(email, password);
     } catch (error) {
-      throw new Error(error.message);
+      throw error;
     }
   }
 
@@ -46,7 +46,7 @@ export class AuthService {
     try {
       return await this.account.get();
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite serive :: getCurrentUser :: error", error);
     }
 
     return null;
@@ -56,7 +56,7 @@ export class AuthService {
     try {
       await this.account.deleteSessions();
     } catch (error) {
-      console.log("AppWrite Service :: getCurrentUser :: error", error);
+      console.log("Appwrite serive :: logout :: error", error);
     }
   }
 }
