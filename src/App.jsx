@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import "./App.css";
@@ -28,7 +29,7 @@ function App() {
       <div className="w-full block">
         <Header />
         <main>
-          todo <Outlet />
+          TODO: <Outlet />
         </main>
         <Footer /> 
       </div>
