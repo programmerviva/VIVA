@@ -20,7 +20,13 @@ function Home() {
           <div className="flex flex-wrap">
             <div className="p-2 w-full">
               <h1 className="text-2xl font-bold hover:text-gray-500">
-                Login to read posts
+                Coming Soon: Building Something Amazing!
+                <p className="text-lg font-normal text-gray-600 mt-2 italic">
+                  The best way to predict the future is to create it.
+                  <span className="text-sm block text-gray-500 mt-1">
+                    - Programmerviva
+                  </span>
+                </p>
               </h1>
             </div>
           </div>
@@ -33,7 +39,7 @@ function Home() {
       <Container>
         <div className="flex flex-wrap">
           {posts.map((post) => (
-            <div key={post.$id} className="p-2 w-1/4">
+            <div key={post.$id} className="p-2 w-1/6">
               <PostCard {...post} />
             </div>
           ))}
