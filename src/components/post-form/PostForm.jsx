@@ -75,8 +75,9 @@ export default function PostForm({ post }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [watch, slugTransform, setValue]);
 
+  }, [watch, slugTransform, setValue]);
+  
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
       <div className="w-2/3 px-2">
@@ -130,7 +131,7 @@ export default function PostForm({ post }) {
         <Button
           type="submit"
           bgColor={post ? "bg-green-500" : undefined}
-          className="w-full"
+          className="w-full cursor-pointer"
         >
           {post ? "Update" : "Submit"}
         </Button>

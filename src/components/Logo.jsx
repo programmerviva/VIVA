@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
-
+import logo from "../assets/viva logo.png";
+import PropTypes from "prop-types";
 
 function Logo({ width = "100px" }) {
-  return <div style={{ width }}>logo</div>;
+  return <img src={logo} alt="Website Logo" style={{ width }} />;
 }
 
 Logo.propTypes = {
-  width: PropTypes.string
+  width: PropTypes.string,
 };
 
 export default Logo;
