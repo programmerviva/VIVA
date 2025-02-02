@@ -11,3 +11,5 @@
 ``` javascript
 go to tailwindcss official site
 ```
+
+![alt text](image-1.png)
