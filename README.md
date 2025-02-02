@@ -12,7 +12,7 @@
 go to tailwindcss official site
 ```
 
-![alt text](image-1.png)
+```![alt text](image-1.png)
 
 ![alt text](image-2.png)
 
@@ -25,3 +25,4 @@ go to tailwindcss official site
 ![alt text](image-6.png)
 
 ![alt text](image-7.png)
+```
