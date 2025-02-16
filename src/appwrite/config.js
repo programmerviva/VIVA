@@ -1,19 +1,31 @@
 import conf from '../conf/conf'
-import { Client, ID, Databases, Storage, Query } from "appwrite";
+import { Client, ID, Databases, Storage, Query, Account } from "appwrite";
+
+
+const client = new Client();
+client.setEndpoint(conf.appwriteUrl).setProject(conf.appwriteProjectId);
+
+// Account instance banaiye current user ke details fetch karne ke liye
+export const account = new Account(client);
 
 export class Service {
-  client = new Client();
+  // client = new Client();
   databases;
   bucket;
 
   constructor() {
-   
-    this.client
-      .setEndpoint(conf.appwriteUrl)
-      .setProject(conf.appwriteProjectId);
-    this.databases = new Databases(this.client);
-    this.bucket = new Storage(this.client);
+    this.databases = new Databases(client);
+    this.bucket = new Storage(client);
   }
+
+  // constructor() {
+
+  //   this.client
+  //     .setEndpoint(conf.appwriteUrl)
+  //     .setProject(conf.appwriteProjectId);
+  //   this.databases = new Databases(this.client);
+  //   this.bucket = new Storage(this.client);
+  // }
 
   async createPost({ title, slug, content, featuredImage, status, userId }) {
     try {
@@ -72,14 +84,11 @@ export class Service {
         conf.appwriteDatabaseId,
         conf.appwriteCollectionId,
         slug
-        
       );
-      
     } catch (error) {
       console.log("Appwrite service :: getPost :: error", error);
       return false;
     }
-    
   }
 
   async getPosts(queries = [Query.equal("status", "active")]) {
