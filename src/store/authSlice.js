@@ -8,26 +8,24 @@ export const updateUserProfile = createAsyncThunk(
       let imageUrl = null;
       const file = formData.get("profilePic");
 
-      // Only upload if file exists and is a File object
       if (file instanceof File) {
-        const uploadedFile = await authService.uploadFile(file);
-        if (uploadedFile.$id) {
-          imageUrl = uploadedFile.$id;
+        const fileId = await authService.uploadFile(file);
+        if (fileId) {
+          imageUrl = fileId;
         }
       }
 
-      // Prepare user data with existing profile pic if no new image
-      const userData = {
+      const updateData = {
         name: formData.get("name"),
         bio: formData.get("bio"),
         profilePic: imageUrl || formData.get("existingProfilePic"),
       };
 
-      const updatedUser = await authService.updateUserPrefs(userData);
-      return {
-        ...updatedUser,
-        profilePic: userData.profilePic,
-      };
+      console.log("Sending update data:", updateData);
+      const result = await authService.updateUserPrefs(updateData);
+      console.log("Update result:", result);
+
+      return result;
     } catch (error) {
       console.error("Profile update error:", error);
       throw error;
@@ -37,12 +35,7 @@ export const updateUserProfile = createAsyncThunk(
 
 const initialState = {
   status: false,
-  userData: {
-    name: "",
-    email: "",
-    profilePic: "",
-    bio: "",
-  },
+  userData: null,
 };
 
 const authSlice = createSlice({
@@ -51,7 +44,10 @@ const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       state.status = true;
-      state.userData = action.payload.userData;
+      state.userData = {
+        ...action.payload.userData,
+        ...action.payload.userData.prefs,
+      };
     },
     logout: (state) => {
       state.status = false;
@@ -59,18 +55,18 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
-        if (action.payload) {
-          state.userData = {
-            ...state.userData,
-            ...action.payload,
-          };
-        }
-      })
-      .addCase(updateUserProfile.rejected, (state, action) => {
-        console.error("Profile update failed:", action.error);
-      });
+    builder.addCase(updateUserProfile.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.userData = {
+          ...state.userData,
+          ...action.payload,
+          ...action.payload.prefs,
+          name: action.payload.name,
+          bio: action.payload.bio,
+          profilePic: action.payload.profilePic,
+        };
+      }
+    });
   },
 });
 

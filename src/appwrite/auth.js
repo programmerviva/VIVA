@@ -1,13 +1,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-catch */
 import conf from "../conf/conf";
-import { Client, Account,Storage, ID } from 'appwrite'
-
+import { Client, Account, Storage, ID } from "appwrite";
 
 export class AuthService {
   client = new Client();
   account;
-  storage
+  storage;
 
   constructor() {
     this.client
@@ -25,7 +24,18 @@ export class AuthService {
         name
       );
       if (userAccount) {
-        // call another method
+        // Set initial preferences for the user
+        await this.account.updatePrefs({
+          name: name,
+          email: email,
+          bio: "",
+          profilePic: "",
+          status: "active",
+          joinedDate: new Date().toISOString(),
+          lastActivity: new Date().toISOString(),
+        });
+
+        // Log the user in after account creation
         return this.login({ email, password });
       } else {
         return userAccount;
@@ -53,6 +63,27 @@ export class AuthService {
     return null;
   }
 
+  async getCurrentUserDetails() {
+    try {
+      const user = await this.account.get();
+      const prefs = await this.account.getPrefs();
+
+      return {
+        userId: user.$id,
+        name: user.name,
+        email: user.email,
+        bio: prefs.bio || "",
+        profilePic: prefs.profilePic || "",
+        joinedDate: prefs.joinedDate,
+        lastActivity: prefs.lastActivity,
+        status: prefs.status,
+      };
+    } catch (error) {
+      console.error("Get current user details error:", error);
+      return null;
+    }
+  }
+
   async logout() {
     try {
       await this.account.deleteSessions();
@@ -63,12 +94,40 @@ export class AuthService {
 
   async updateUserPrefs(userData) {
     try {
-      const response = await this.account.updatePrefs(userData);
-      return response;
+      console.log("Updating prefs with:", userData);
+
+      // Get current preferences first
+      const currentUser = await this.getCurrentUser();
+      const currentPrefs = currentUser.prefs || {};
+
+      // Prepare new preferences
+      const newPrefs = {
+        ...currentPrefs,
+        name: userData.name,
+        bio: userData.bio || "",
+        profilePic: userData.profilePic || currentPrefs.profilePic || "",
+      };
+
+      console.log("New prefs to be set:", newPrefs);
+
+      // Update preferences in Appwrite
+      const response = await this.account.updatePrefs(newPrefs);
+      console.log("Appwrite update response:", response);
+
+      // Return complete user data
+      return {
+        ...currentUser,
+        name: userData.name,
+        bio: userData.bio,
+        profilePic: userData.profilePic || currentPrefs.profilePic,
+        prefs: response,
+      };
     } catch (error) {
+      console.error("Update prefs error:", error);
       throw error;
     }
   }
+
   async uploadFile(file) {
     try {
       const response = await this.storage.createFile(
@@ -79,6 +138,16 @@ export class AuthService {
       return response.$id;
     } catch (error) {
       throw error;
+    }
+  }
+
+  // Add method to get file preview
+  async getFilePreview(fileId) {
+    try {
+      return this.storage.getFilePreview(conf.appwriteBucketId, fileId);
+    } catch (error) {
+      console.error("Get file preview error:", error);
+      return null;
     }
   }
 }

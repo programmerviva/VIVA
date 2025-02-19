@@ -75,66 +75,92 @@ export default function PostForm({ post }) {
     });
 
     return () => subscription.unsubscribe();
-
   }, [watch, slugTransform, setValue]);
-  
+
   return (
-    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
-      <div className="w-2/3 px-2">
-        <Input
-          label="Title :"
-          placeholder="Title"
-          className="mb-4"
-          {...register("title", { required: true })}
-        />
-        <Input
-          label="Slug :"
-          placeholder="Slug"
-          className="mb-4"
-          {...register("slug", { required: true })}
-          onInput={(e) => {
-            setValue("slug", slugTransform(e.currentTarget.value), {
-              shouldValidate: true,
-            });
-          }}
-        />
-        <RTE
-          label="Content :"
-          name="content"
-          control={control}
-          defaultValue={getValues("content")}
-        />
-      </div>
-      <div className="w-1/3 px-2">
-        <Input
-          label="Featured Image :"
-          type="file"
-          className="mb-4"
-          accept="image/png, image/jpg, image/jpeg, image/gif"
-          {...register("image", { required: !post })}
-        />
-        {post && (
-          <div className="w-full mb-4">
-            <img
-              src={appwriteService.getFilePreview(post.featuredImage)}
-              alt={post.title}
-              className="rounded-lg"
+    <form onSubmit={handleSubmit(submit)} className="max-w-7xl mx-auto p-6">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Main Content Section */}
+        <div className="flex-1 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+            <Input
+              label="Title"
+              placeholder="Enter post title"
+              className="mb-4"
+              {...register("title", { required: true })}
             />
+            <Input
+              label="Slug"
+              placeholder="post-url-slug"
+              className="mb-4"
+              {...register("slug", { required: true })}
+              onInput={(e) => {
+                setValue("slug", slugTransform(e.currentTarget.value), {
+                  shouldValidate: true,
+                });
+              }}
+            />
+            <div className="space-y-2">
+              <RTE
+                label="Content"
+                name="content"
+                control={control}
+                defaultValue={getValues("content")}
+              />
+            </div>
           </div>
-        )}
-        <Select
-          options={["active", "inactive"]}
-          label="Status"
-          className="mb-4"
-          {...register("status", { required: true })}
-        />
-        <Button
-          type="submit"
-          bgColor={post ? "bg-green-500" : undefined}
-          className="w-full cursor-pointer"
-        >
-          {post ? "Update" : "Submit"}
-        </Button>
+        </div>
+
+        {/* Sidebar Section */}
+        <div className="lg:w-80 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Featured Image
+                </label>
+                <div className="mt-1">
+                  <Input
+                    type="file"
+                    className="w-full"
+                    accept="image/png, image/jpg, image/jpeg, image/gif"
+                    {...register("image", { required: !post })}
+                  />
+                </div>
+              </div>
+
+              {post && (
+                <div className="relative rounded-lg overflow-hidden">
+                  <img
+                    src={appwriteService.getFilePreview(post.featuredImage)}
+                    alt={post.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-30 transition-opacity opacity-0 hover:opacity-100">
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-white text-sm">Change Image</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Select
+                options={["active", "inactive"]}
+                label="Status"
+                className="w-full"
+                {...register("status", { required: true })}
+              />
+
+              <Button
+                type="submit"
+                bgColor={post ? "bg-green-500" : "bg-blue-600"}
+                className="w-full py-2.5 text-white hover:bg-opacity-90 transition-colors duration-200"
+              >
+                {post ? "Update Post" : "Publish Post"}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </form>
   );
