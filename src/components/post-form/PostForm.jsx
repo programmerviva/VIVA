@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, RTE, Select } from "..";
 import appwriteService from "../../appwrite/config";
@@ -20,39 +21,60 @@ export default function PostForm({ post }) {
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData);
 
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Define status options
+  const statusOptions = [
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+  ];
+
   const submit = async (data) => {
-    if (post) {
-      const file = data.image[0]
-        ? await appwriteService.uploadFile(data.image[0])
-        : null;
+    try {
+      setError("");
+      setLoading(true);
 
-      if (file) {
-        appwriteService.deleteFile(post.featuredImage);
-      }
+      let postData = {
+        title: data.title,
+        content: data.content,
+        status: data.status,
+        featuredImage: post?.featuredImage || "",
+      };
 
-      const dbPost = await appwriteService.updatePost(post.$id, {
-        ...data,
-        featuredImage: file ? file.$id : undefined,
-      });
+      if (data.image && data.image[0]) {
+        try {
+          const file = await appwriteService.uploadFile(data.image[0]);
+          if (file) {
+            postData.featuredImage = file.$id;
 
-      if (dbPost) {
-        navigate(`/post/${dbPost.$id}`);
-      }
-    } else {
-      const file = await appwriteService.uploadFile(data.image[0]);
-
-      if (file) {
-        const fileId = file.$id;
-        data.featuredImage = fileId;
-        const dbPost = await appwriteService.createPost({
-          ...data,
-          userId: userData.$id,
-        });
-
-        if (dbPost) {
-          navigate(`/post/${dbPost.$id}`);
+            // Delete old image if exists
+            if (post?.featuredImage) {
+              await appwriteService.deleteFile(post.featuredImage);
+            }
+          }
+        } catch (error) {
+          console.error("Image upload failed:", error);
+          throw new Error("Image upload failed");
         }
       }
+
+      let response;
+      if (post?.$id) {
+        // Check if we're editing an existing post
+        response = await appwriteService.updatePost(post.$id, postData);
+      } else {
+        response = await appwriteService.createPost(postData);
+      }
+
+      if (response) {
+        navigate(`/post/${response.$id}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setError(error.message || "Failed to process post");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,90 +100,57 @@ export default function PostForm({ post }) {
   }, [watch, slugTransform, setValue]);
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="max-w-7xl mx-auto p-6">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Main Content Section */}
-        <div className="flex-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-            <Input
-              label="Title"
-              placeholder="Enter post title"
-              className="mb-4"
-              {...register("title", { required: true })}
-            />
-            <Input
-              label="Slug"
-              placeholder="post-url-slug"
-              className="mb-4"
-              {...register("slug", { required: true })}
-              onInput={(e) => {
-                setValue("slug", slugTransform(e.currentTarget.value), {
-                  shouldValidate: true,
-                });
-              }}
-            />
-            <div className="space-y-2">
-              <RTE
-                label="Content"
-                name="content"
-                control={control}
-                defaultValue={getValues("content")}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar Section */}
-        <div className="lg:w-80 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Featured Image
-                </label>
-                <div className="mt-1">
-                  <Input
-                    type="file"
-                    className="w-full"
-                    accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post })}
-                  />
-                </div>
-              </div>
-
-              {post && (
-                <div className="relative rounded-lg overflow-hidden">
-                  <img
-                    src={appwriteService.getFilePreview(post.featuredImage)}
-                    alt={post.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-30 transition-opacity opacity-0 hover:opacity-100">
-                    <div className="flex items-center justify-center h-full">
-                      <span className="text-white text-sm">Change Image</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Select
-                options={["active", "inactive"]}
-                label="Status"
-                className="w-full"
-                {...register("status", { required: true })}
-              />
-
-              <Button
-                type="submit"
-                bgColor={post ? "bg-green-500" : "bg-blue-600"}
-                className="w-full py-2.5 text-white hover:bg-opacity-90 transition-colors duration-200"
-              >
-                {post ? "Update Post" : "Publish Post"}
-              </Button>
-            </div>
-          </div>
-        </div>
+    <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-3">
+      {error && <div className="text-red-600 text-center">{error}</div>}
+      <div className="w-full">
+        <Input
+          label="Title :"
+          placeholder="Title"
+          className="mb-4"
+          {...register("title", { required: true })}
+        />
+        <RTE
+          label="Content :"
+          name="content"
+          control={control}
+          defaultValue={getValues("content")}
+        />
       </div>
+      <div className="w-full">
+        <Input
+          label="Featured Image :"
+          type="file"
+          className="mb-4"
+          accept="image/png, image/jpg, image/jpeg, image/gif"
+          {...register("image")}
+        />
+        {post && post.featuredImage && (
+          <div className="w-full h-32 mb-4">
+            <img
+              src={appwriteService.getFilePreview(post.featuredImage)}
+              alt={post.title}
+              className="rounded-lg"
+            />
+          </div>
+        )}
+      </div>
+      <div className="w-full">
+        <Select
+          options={statusOptions}
+          label="Status"
+          className="mb-4"
+          {...register("status")}
+          value={watch("status")}
+          onChange={(value) => setValue("status", value)}
+        />
+      </div>
+      <Button
+        type="submit"
+        bgColor={post ? "bg-green-500" : undefined}
+        className="w-full"
+      >
+        {loading ? "Processing..." : post ? "Update Post" : "Create Post"}
+      </Button>
     </form>
   );
 }

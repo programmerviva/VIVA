@@ -1,28 +1,45 @@
 import { useState } from "react";
-import authService from "../appwrite/auth";
+import { AuthService } from "../appwrite/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../store/authSlice";
 import { Button, Input, Logo } from "./index.js";
 import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 
-function Signup() {
+const authService = new AuthService();
+
+const Signup = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { register, handleSubmit } = useForm();
 
-  const create = async (data) => {
+  const handleSignup = async (data) => {
     setError("");
+    setLoading(true);
     try {
-      const userData = await authService.createAccount(data);
-      if (userData) {
+      const session = await authService.createAccount(data);
+      if (session) {
         const userData = await authService.getCurrentUser();
         if (userData) dispatch(login(userData));
         navigate("/");
       }
     } catch (error) {
-      setError(error.message);
+      console.error("Signup error:", error);
+      if (error.message.includes("Failed to fetch")) {
+        alert(
+          "Connection failed. Please check your internet connection and try again."
+        );
+      } else if (error.toString().includes("already exists")) {
+        setError(
+          "An account with this email already exists. Please login instead."
+        );
+      } else {
+        setError(error.message || "Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,7 +78,7 @@ function Signup() {
         )}
 
         {/* Form Section */}
-        <form onSubmit={handleSubmit(create)} className="space-y-5">
+        <form onSubmit={handleSubmit(handleSignup)} className="space-y-5">
           <Input
             label="Full Name"
             placeholder="Enter your full name"
@@ -101,12 +118,12 @@ function Signup() {
             type="submit"
             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-3.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-gray-800"
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
       </div>
     </div>
   );
-}
+};
 
 export default Signup;

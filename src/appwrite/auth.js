@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-catch */
 import conf from "../conf/conf";
 import { Client, Account, Storage, ID } from "appwrite";
@@ -9,12 +8,20 @@ export class AuthService {
   storage;
 
   constructor() {
-    this.client
-      .setEndpoint(conf.appwriteUrl)
-      .setProject(conf.appwriteProjectId);
-    this.account = new Account(this.client);
-    this.storage = new Storage(this.client);
+    try {
+      this.client
+        .setEndpoint(conf.appwriteUrl)
+        .setProject(conf.appwriteProjectId);
+      // Removed setSelfSigned as it's not needed anymore
+
+      this.account = new Account(this.client);
+      this.storage = new Storage(this.client);
+    } catch (error) {
+      console.error("Failed to initialize Appwrite client:", error);
+      throw new Error("Service initialization failed");
+    }
   }
+
   async createAccount({ email, password, name }) {
     try {
       const userAccount = await this.account.create(
@@ -23,44 +30,53 @@ export class AuthService {
         password,
         name
       );
-      if (userAccount) {
-        // Set initial preferences for the user
-        await this.account.updatePrefs({
-          name: name,
-          email: email,
-          bio: "",
-          profilePic: "",
-          status: "active",
-          joinedDate: new Date().toISOString(),
-          lastActivity: new Date().toISOString(),
-        });
 
-        // Log the user in after account creation
-        return this.login({ email, password });
-      } else {
-        return userAccount;
+      if (userAccount) {
+        // Login immediately after successful signup
+        return await this.login({ email, password });
       }
     } catch (error) {
-      throw error;
+      console.error("Appwrite service error:", error);
+      if (error?.code === 409) {
+        throw new Error("Email already registered. Please login instead.");
+      }
+      throw new Error("Account creation failed. Please try again.");
     }
   }
 
   async login({ email, password }) {
     try {
-      return await this.account.createEmailPasswordSession(email, password);
+      const session = await this.account.createEmailPasswordSession(email, password);
+      if (!session) {
+        throw new Error("Failed to create session");
+      }
+
+      const userData = await this.account.get();
+      if (!userData) {
+        throw new Error("Failed to get user data");
+      }
+
+      return {
+        userData,
+        session,
+      };
     } catch (error) {
-      throw error;
+      console.error("Login error:", error);
+      if (error?.code === 401) {
+        throw new Error("Invalid email or password");
+      }
+      throw new Error("Login failed. Please try again.");
     }
   }
 
   async getCurrentUser() {
     try {
-      return await this.account.get();
+      const userData = await this.account.get();
+      return userData;
     } catch (error) {
-      console.log("Appwrite serive :: getCurrentUser :: error", error);
+      console.error("Get current user error:", error);
+      return null;
     }
-
-    return null;
   }
 
   async getCurrentUserDetails() {
@@ -86,9 +102,11 @@ export class AuthService {
 
   async logout() {
     try {
-      await this.account.deleteSessions();
+      await this.account.deleteSession("current");
+      return true;
     } catch (error) {
-      console.log("Appwrite serive :: logout :: error", error);
+      console.error("Logout error:", error);
+      return false;
     }
   }
 

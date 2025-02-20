@@ -50,6 +50,10 @@ export class Service {
       // Get current user info
       const userData = await this.account.get();
 
+      // Get user name from preferences or account
+      const userPrefs = await this.account.getPrefs();
+      const authorName = userPrefs.name || userData.name || "Unknown User";
+
       // Create slug from title
       const slug = this.createSlug(title);
 
@@ -63,12 +67,14 @@ export class Service {
           featuredImage,
           status,
           userId: userData.$id,
-          slug, // Add the slug field
+          authorName,
+          slug,
+          // Removed createdAt as it's not in the collection
         }
       );
     } catch (error) {
-      console.log("createPost error: ", error);
-      return false;
+      console.error("createPost error: ", error);
+      throw error;
     }
   }
 
@@ -86,7 +92,25 @@ export class Service {
         }
       );
     } catch (error) {
-      console.log("Appwrite service :: updatePost :: error", error);
+      console.error("Post update error:", error);
+      throw error;
+    }
+  }
+
+  async togglePostStatus(slug, currentStatus) {
+    try {
+      const newStatus = currentStatus === "active" ? "inactive" : "active";
+      return await this.databases.updateDocument(
+        conf.appwriteDatabaseId,
+        conf.appwriteCollectionId,
+        slug,
+        {
+          status: newStatus,
+        }
+      );
+    } catch (error) {
+      console.error("Status toggle error:", error);
+      throw error;
     }
   }
 
@@ -194,8 +218,8 @@ export class Service {
         file
       );
     } catch (error) {
-      console.log("Appwrite service :: uploadFile :: error", error);
-      return false;
+      console.error("File upload error:", error);
+      throw error;
     }
   }
 
@@ -204,13 +228,26 @@ export class Service {
       await this.storage.deleteFile(conf.appwriteBucketId, fileId);
       return true;
     } catch (error) {
-      console.log("Appwrite service :: deleteFile :: error", error);
+      console.error("File deletion error:", error);
       return false;
     }
   }
 
   getFilePreview(fileId) {
-    return this.storage.getFilePreview(conf.appwriteBucketId, fileId);
+    try {
+      if (!fileId) return null;
+      return this.storage.getFilePreview(
+        conf.appwriteBucketId,
+        fileId,
+        2000, // width
+        2000, // height
+        "center",
+        100 // quality
+      );
+    } catch (error) {
+      console.error("File preview error:", error);
+      return null;
+    }
   }
 }
 

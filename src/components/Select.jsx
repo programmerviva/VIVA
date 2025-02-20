@@ -1,14 +1,18 @@
 /* eslint-disable react/prop-types */
 import React, { useId } from "react";
 
-function Select({ options, label, className, ...props }, ref) {
+function Select(
+  { options, label, className = "", value, onChange, error, ...props },
+  ref
+) {
   const id = useId();
+
   return (
     <div className="relative w-full">
       {label && (
         <label
           htmlFor={id}
-          className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
+          className="inline-block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200"
         >
           {label}
         </label>
@@ -18,33 +22,47 @@ function Select({ options, label, className, ...props }, ref) {
           {...props}
           id={id}
           ref={ref}
+          value={value}
+          onChange={(e) => onChange && onChange(e.target.value)}
           className={`
-            block w-full px-4 py-2.5
+            block w-full px-4 py-3
             text-base text-gray-900 dark:text-white
             bg-white dark:bg-gray-800
             border border-gray-300 dark:border-gray-600
-            rounded-lg
-            focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-            dark:focus:ring-primary-500 dark:focus:border-primary-500
+            rounded-lg shadow-sm
+            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            dark:focus:ring-blue-400 dark:focus:border-blue-400
             appearance-none
-            transition-colors duration-200
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            sm:text-sm
-            ${className}`}
+            transition-all duration-200 ease-in-out
+            disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
+            hover:border-blue-400 dark:hover:border-blue-300
+            sm:text-sm md:text-base
+            ${
+              error
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : ""
+            }
+            ${className}
+          `}
         >
-          {options?.map((option) => (
+          <option value="" disabled>
+            Select an option
+          </option>
+          {options.map((option) => (
             <option
-              key={option}
-              value={option}
-              className="py-2 text-gray-900 dark:text-white"
+              key={option.value}
+              value={option.value}
+              className="py-2 px-3 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              {option}
+              {option.label}
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+
+        {/* Custom dropdown arrow */}
+        <div className="absolute inset-y-0 right-0 flex items-center px-2.5 pointer-events-none">
           <svg
-            className="w-4 h-4 text-gray-400"
+            className="w-5 h-5 text-gray-500 transition-colors duration-200 group-hover:text-blue-500"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -57,6 +75,11 @@ function Select({ options, label, className, ...props }, ref) {
           </svg>
         </div>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
     </div>
   );
 }
