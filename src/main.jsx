@@ -6,7 +6,8 @@ import { Provider } from "react-redux";
 import store from "./store/store.js";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Home from "./pages/Home.jsx";
-import { AuthLayout, Login } from "./components/index.js";
+import { Login, Protected } from "./components/index.js";
+import { Profile } from "./components";
 
 import AddPost from "./pages/AddPost";
 import Signup from "./pages/Signup";
@@ -15,7 +16,6 @@ import EditPost from "./pages/EditPost";
 import Post from "./pages/Post";
 
 import AllPosts from "./pages/AllPost";
-import Profile from "./pages/Profile.jsx";
 
 const router = createBrowserRouter([
   {
@@ -24,61 +24,58 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home />,
+        element: (
+          <Protected>
+            <Home />
+          </Protected>
+        ),
       },
       {
         path: "/login",
-        element: (
-          <AuthLayout authentication={false}>
-            <Login />
-          </AuthLayout>
-        ),
+        element: <Login />,
       },
       {
         path: "/signup",
-        element: (
-          <AuthLayout authentication={false}>
-            <Signup />
-          </AuthLayout>
-        ),
+        element: <Signup />,
       },
       {
         path: "/all-posts",
         element: (
-          <AuthLayout authentication>
-            {" "}
+          <Protected>
             <AllPosts />
-          </AuthLayout>
+          </Protected>
         ),
       },
       {
         path: "/add-post",
         element: (
-          <AuthLayout authentication>
-            {" "}
+          <Protected>
             <AddPost />
-          </AuthLayout>
+          </Protected>
         ),
       },
       {
         path: "/edit-post/:slug",
         element: (
-          <AuthLayout authentication>
-            {" "}
+          <Protected>
             <EditPost />
-          </AuthLayout>
+          </Protected>
         ),
       },
       {
         path: "/post/:slug",
-        element: <Post />,
+        element: (
+          <Protected>
+            <Post />
+          </Protected>
+        ),
       },
       {
         path: "/profile",
         element: (
-          <AuthLayout authentication>
+          <Protected>
             <Profile />
-          </AuthLayout>
+          </Protected>
         ),
       },
     ],

@@ -28,6 +28,11 @@ function Header() {
   }, [userData?.profilePic]);
 
   const navItems = [
+    // {
+    //   name: "Profile",
+    //   slug: "/profile",
+    //   active: authStatus,
+    // },
     {
       name: "Home",
       slug: "/",
@@ -41,7 +46,7 @@ function Header() {
   ];
 
   return (
-    <header className="py-0.5 bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm border-b border-gray-100">
+    <header className="py-0.5 bg-gray-900 backdrop-blur-sm sticky top-0 z-50   ">
       <Container>
         <nav className="flex items-center justify-between h-9">
           {/* Logo Section */}
@@ -55,13 +60,13 @@ function Header() {
           </div>
 
           {/* Navigation Links */}
-          <ul className="hidden md:flex items-center gap-1">
+          <ul className="hidden md:flex items-center gap-2">
             {navItems.map((item) =>
               item.active ? (
                 <li key={item.name}>
                   <Link
                     to={item.slug}
-                    className="gap-2.5 px-2.5 py-1 rounded-md text-[12px] font-medium text-gray-800 hover:text-orange-600 hover:bg-orange-50/80 transition-colors duration-200"
+                    className="gap-2.5 px-2.5 py-1 rounded-md text-[12px] font-medium text-gray-50 hover:text-gray-300 transition-colors duration-200"
                   >
                     {item.name}
                   </Link>
@@ -87,10 +92,10 @@ function Header() {
 
                 {/* Dropdown Menu */}
                 {showDropdown && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-100 animate-fadeIn">
+                  <div className="absolute right-0 mt-1 w-48 bg-gray-900 rounded-lg shadow-lg py-1 border border-gray-600 animate-fadeIn">
                     {/* User Info */}
-                    <div className="px-3 py-1.5 border-b border-gray-100">
-                      <p className="text-[12px] font-medium text-gray-800">
+                    <div className="px-3 py-1.5 border-b border-gray-600">
+                      <p className="text-[12px] font-medium text-gray-50">
                         {userData?.name}
                       </p>
                       <p className="text-[11px] text-gray-400">
@@ -102,29 +107,25 @@ function Header() {
                     <div className="py-1">
                       <Link
                         to="/add-post"
-                        className="flex items-center px-3 py-1.5 text-[12px] text-gray-800 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-150"
+                        className="flex items-center px-3 py-1.5 text-[12px] text-gray-50   hover:text-gray-300 transition-colors duration-150"
                         onClick={() => setShowDropdown(false)}
                       >
-                        <svg
-                          className="w-3 h-3 mr-2 text-gray-400"
-                        />
+                        <svg className="w-3 h-3 mr-2 text-gray-400" />
                         Add Post
                       </Link>
                       <Link
                         to="/profile"
-                        className="flex items-center px-3 py-1.5 text-[12px] text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-150"
+                        className="flex items-center px-3 py-1.5 text-[12px] text-gray-50   hover:text-gray-300 transition-colors duration-150"
                         onClick={() => setShowDropdown(false)}
                       >
-                        <svg
-                          className="w-3 h-3 mr-2 text-gray-400"
-                        />
+                        <svg className="w-3 h-3 mr-2 text-gray-400" />
                         Profile
                       </Link>
                     </div>
 
                     {/* Logout Button */}
-                    <div className="border-t border-gray-100 mt-1">
-                      <LogoutBtn className="flex w-full items-center px-3 py-1.5 text-[12px] text-red-500 hover:bg-red-50 transition-colors duration-150" />
+                    <div className="border-t mt-1">
+                      <LogoutBtn className="flex w-full items-center px-3 py-1.5 text-[12px]   transition-colors duration-150" />
                     </div>
                   </div>
                 )}

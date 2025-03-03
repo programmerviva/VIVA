@@ -12,6 +12,8 @@ import PostForm from "./post-form/PostForm";
 import PostCard from "./PostCard";
 import AuthLayout from "./AuthLayout";
 import Input from "./Input";
+import Protected from "./Protected";
+import Profile from "./Profile/Profile.jsx"
 export {
   Header,
   Footer,
@@ -27,4 +29,7 @@ export {
   AuthLayout,
   Input,
   Select,
+  Protected,
+  Profile
 };
+export { default as Loading } from "./Loading";

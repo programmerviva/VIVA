@@ -14,16 +14,16 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (data) => {
-    setError("");
-    setLoading(true);
     try {
+      setError("");
+      setLoading(true);
       const session = await authService.login(data);
       if (session?.userData) {
         dispatch(authLogin(session.userData));
         navigate("/");
       }
-    } catch (error) {
-      setError(error.message);
+    } catch   {
+      setError("Invalid email or password");
     } finally {
       setLoading(false);
     }
@@ -31,7 +31,7 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center w-full">
-      <div className="mx-auto w-full max-w-lg bg-gray-100 rounded-xl p-10 border border-black/10">
+      <div className="mx-auto w-full max-w-lg  rounded-xl p-10  ">
         <div className="mb-2 flex justify-center">
           <span className="inline-block w-full max-w-[100px]">
             <Logo width="100%" />

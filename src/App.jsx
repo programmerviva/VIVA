@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import authService from "./appwrite/auth";
 import { login, logout } from "./store/authSlice";
-import { Footer, Header } from "./components";
+import { Header, Footer } from "./components";
 import { Outlet } from "react-router-dom";
+import authService from "./appwrite/auth";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -14,25 +14,23 @@ function App() {
       .getCurrentUser()
       .then((userData) => {
         if (userData) {
-          dispatch(login({ userData }));
+          dispatch(login(userData));
         } else {
           dispatch(logout());
         }
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [dispatch]);
 
-  return !loading ? (
-    <div className="min-h-screen flex flex-wrap content-between bg-gray-400">
-      <div className="w-full block">
-        <Header />
-        <main>
-          <Outlet />
-        </main>
-        <Footer />
-      </div>
+  return loading ? null : (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
     </div>
-  ) : null;
+  );
 }
 
 export default App;

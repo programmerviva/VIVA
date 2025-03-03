@@ -46,35 +46,26 @@ export class AuthService {
 
   async login({ email, password }) {
     try {
+      // Create new session without checking current session
       const session = await this.account.createEmailPasswordSession(email, password);
-      if (!session) {
-        throw new Error("Failed to create session");
+
+      if (session) {
+        const userData = await this.account.get();
+        return { userData, session };
       }
 
-      const userData = await this.account.get();
-      if (!userData) {
-        throw new Error("Failed to get user data");
-      }
-
-      return {
-        userData,
-        session,
-      };
+      throw new Error("Failed to create session");
     } catch (error) {
       console.error("Login error:", error);
-      if (error?.code === 401) {
-        throw new Error("Invalid email or password");
-      }
-      throw new Error("Login failed. Please try again.");
+      throw error;
     }
   }
 
   async getCurrentUser() {
     try {
-      const userData = await this.account.get();
-      return userData;
+      return await this.account.get();
     } catch (error) {
-      console.error("Get current user error:", error);
+      console.error("getCurrentUser error:", error);
       return null;
     }
   }
@@ -102,11 +93,10 @@ export class AuthService {
 
   async logout() {
     try {
-      await this.account.deleteSession("current");
-      return true;
+      return await this.account.deleteSession("current");
     } catch (error) {
       console.error("Logout error:", error);
-      return false;
+      return null;
     }
   }
 
@@ -159,13 +149,61 @@ export class AuthService {
     }
   }
 
-  // Add method to get file preview
   async getFilePreview(fileId) {
     try {
       return this.storage.getFilePreview(conf.appwriteBucketId, fileId);
     } catch (error) {
       console.error("Get file preview error:", error);
       return null;
+    }
+  }
+
+  async updateProfile(formData) {
+    try {
+      const userData = await this.account.get();
+      let updatedData = { ...userData };
+
+      // Update name if provided
+      if (formData.get("name")) {
+        await this.account.updateName(formData.get("name"));
+        updatedData.name = formData.get("name");
+      }
+
+      // Handle profile picture upload
+      if (formData.get("profilePic")) {
+        // Delete existing profile picture if exists
+        if (userData.profilePic) {
+          try {
+            await this.storage.deleteFile(
+              conf.appwriteBucketId,
+              userData.profilePic
+            );
+          } catch {
+            console.log("No existing profile picture to delete");
+          }
+        }
+
+        // Upload new profile picture
+        const file = await this.storage.createFile(
+          conf.appwriteBucketId,
+          ID.unique(),
+          formData.get("profilePic")
+        );
+        updatedData.profilePic = file.$id;
+      }
+
+      // Update preferences (bio)
+      if (formData.get("bio")) {
+        await this.account.updatePrefs({
+          bio: formData.get("bio"),
+        });
+        updatedData.bio = formData.get("bio");
+      }
+
+      return updatedData;
+    } catch (error) {
+      console.error("Profile update error:", error);
+      throw error;
     }
   }
 }

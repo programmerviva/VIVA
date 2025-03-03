@@ -5,29 +5,10 @@ export const updateUserProfile = createAsyncThunk(
   "auth/updateProfile",
   async (formData) => {
     try {
-      let imageUrl = null;
-      const file = formData.get("profilePic");
-
-      if (file instanceof File) {
-        const fileId = await authService.uploadFile(file);
-        if (fileId) {
-          imageUrl = fileId;
-        }
-      }
-
-      const updateData = {
-        name: formData.get("name"),
-        bio: formData.get("bio"),
-        profilePic: imageUrl || formData.get("existingProfilePic"),
-      };
-
-      console.log("Sending update data:", updateData);
-      const result = await authService.updateUserPrefs(updateData);
-      console.log("Update result:", result);
-
-      return result;
+      const userData = await authService.updateProfile(formData);
+      return userData;
     } catch (error) {
-      console.error("Profile update error:", error);
+      console.error("Profile update failed:", error);
       throw error;
     }
   }
@@ -36,6 +17,8 @@ export const updateUserProfile = createAsyncThunk(
 const initialState = {
   status: false,
   userData: null,
+  loading: false,
+  error: null,
 };
 
 const authSlice = createSlice({
@@ -52,18 +35,19 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(updateUserProfile.fulfilled, (state, action) => {
-      if (action.payload) {
-        state.userData = {
-          ...state.userData,
-          ...action.payload,
-          ...action.payload.prefs,
-          name: action.payload.name,
-          bio: action.payload.bio,
-          profilePic: action.payload.profilePic,
-        };
-      }
-    });
+    builder
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userData = action.payload;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 
