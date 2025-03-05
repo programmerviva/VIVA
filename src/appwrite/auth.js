@@ -30,34 +30,39 @@ export class AuthService {
         password,
         name
       );
-
       if (userAccount) {
-        // Login immediately after successful signup
+        // Call login first to create a session
         return await this.login({ email, password });
       }
+      return userAccount;
     } catch (error) {
       console.error("Appwrite service error:", error);
-      if (error?.code === 409) {
-        throw new Error("Email already registered. Please login instead.");
-      }
-      throw new Error("Account creation failed. Please try again.");
+      throw error;
     }
   }
 
   async login({ email, password }) {
     try {
-      // Create new session without checking current session
+      
       const session = await this.account.createEmailPasswordSession(email, password);
 
-      if (session) {
-        const userData = await this.account.get();
-        return { userData, session };
+      if (!session) {
+        throw new Error("Failed to create session");
       }
 
-      throw new Error("Failed to create session");
+      // Get user details after successful login
+      const userData = await this.account.get();
+      return {
+        session,
+        userData,
+      };
     } catch (error) {
       console.error("Login error:", error);
-      throw error;
+      if (error?.type === "user_invalid_credentials") {
+        throw new Error("Invalid email or password");
+      } else {
+        throw new Error("Login failed. Please try again");
+      }
     }
   }
 
@@ -65,9 +70,10 @@ export class AuthService {
     try {
       return await this.account.get();
     } catch (error) {
-      console.error("getCurrentUser error:", error);
-      return null;
+      console.log("Appwrite serive :: getCurrentUser :: error", error);
     }
+
+    return null;
   }
 
   async getCurrentUserDetails() {
@@ -93,10 +99,9 @@ export class AuthService {
 
   async logout() {
     try {
-      return await this.account.deleteSession("current");
+      await this.account.deleteSessions();
     } catch (error) {
-      console.error("Logout error:", error);
-      return null;
+      console.log("Appwrite serive :: logout :: error", error);
     }
   }
 
@@ -149,61 +154,13 @@ export class AuthService {
     }
   }
 
+  // Add method to get file preview
   async getFilePreview(fileId) {
     try {
       return this.storage.getFilePreview(conf.appwriteBucketId, fileId);
     } catch (error) {
       console.error("Get file preview error:", error);
       return null;
-    }
-  }
-
-  async updateProfile(formData) {
-    try {
-      const userData = await this.account.get();
-      let updatedData = { ...userData };
-
-      // Update name if provided
-      if (formData.get("name")) {
-        await this.account.updateName(formData.get("name"));
-        updatedData.name = formData.get("name");
-      }
-
-      // Handle profile picture upload
-      if (formData.get("profilePic")) {
-        // Delete existing profile picture if exists
-        if (userData.profilePic) {
-          try {
-            await this.storage.deleteFile(
-              conf.appwriteBucketId,
-              userData.profilePic
-            );
-          } catch {
-            console.log("No existing profile picture to delete");
-          }
-        }
-
-        // Upload new profile picture
-        const file = await this.storage.createFile(
-          conf.appwriteBucketId,
-          ID.unique(),
-          formData.get("profilePic")
-        );
-        updatedData.profilePic = file.$id;
-      }
-
-      // Update preferences (bio)
-      if (formData.get("bio")) {
-        await this.account.updatePrefs({
-          bio: formData.get("bio"),
-        });
-        updatedData.bio = formData.get("bio");
-      }
-
-      return updatedData;
-    } catch (error) {
-      console.error("Profile update error:", error);
-      throw error;
     }
   }
 }
