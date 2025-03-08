@@ -8,7 +8,8 @@ import authService from "../appwrite/auth";
 import Loading from "./Loading"; // If Loading.jsx is in the same folder
 // OR
 // import Loading from "./components/Loading"; // If Loading.jsx is in a components subfolder
-
+// todo here
+// ? go there
 export default function AuthLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
